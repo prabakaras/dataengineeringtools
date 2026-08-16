@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CSV / JSON Converter | Workbench</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="tool-page">
+    <main class="tool-layout">
+      <nav class="tool-nav"><a class="brand" href="index.html" aria-label="Prabakar's GitHub home"><span class="brand-mark" aria-hidden="true">PG</span><span class="brand-name">PRABAKAR'S GITHUB</span></a><div class="nav-links"><a href="json.html">JSON</a><a class="active" href="convert.html">CONVERT</a><a href="sql.html">SQL</a></div></nav>
+      <header class="tool-header"><p class="eyebrow">TOOL 02 / DATA</p><h1>CSV / JSON<br /><em>Converter</em></h1><p>Convert tabular data in either direction. Quoted CSV fields and commas inside values are supported.</p></header>
+      <div class="control-row"><select id="convert-mode" aria-label="Conversion mode"><option value="csv-to-json">CSV to JSON</option><option value="json-to-csv">JSON to CSV</option></select><button type="button" id="convert-run">CONVERT</button><button type="button" id="convert-sample">LOAD SAMPLE</button></div>
+      <section class="work-area convert-layout">
+        <div class="work-panel"><div class="panel-header"><label id="convert-input-label" for="convert-input">CSV INPUT</label><label class="file-button">IMPORT FILE<input type="file" id="convert-file" accept=".csv,.json,text/csv,application/json" /></label></div><textarea id="convert-input" spellcheck="false" aria-label="Conversion input"></textarea></div>
+        <div class="work-panel"><div class="panel-header"><label id="convert-output-label" for="convert-output">JSON OUTPUT</label><div class="panel-actions"><button type="button" id="convert-copy">COPY</button><button type="button" id="convert-download">DOWNLOAD</button></div></div><pre id="convert-output" aria-live="polite">Converted data will appear here.</pre></div>
+      </section>
+      <p id="convert-status" class="status" aria-live="polite">Choose a direction and paste your data.</p>
+    </main>
+    <script src="app.js"></script>
+  </body>
+</html>

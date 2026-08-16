@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SQL Formatter | Workbench</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="tool-page">
+    <main class="tool-layout">
+      <nav class="tool-nav"><a class="brand" href="index.html" aria-label="Prabakar's GitHub home"><span class="brand-mark" aria-hidden="true">PG</span><span class="brand-name">PRABAKAR'S GITHUB</span></a><div class="nav-links"><a href="json.html">JSON</a><a href="convert.html">CONVERT</a><a class="active" href="sql.html">SQL</a></div></nav>
+      <header class="tool-header"><p class="eyebrow">TOOL 03 / QUERY</p><h1>SQL<br /><em>Formatter</em></h1><p>Organize a query for easier reading, review, and handoff. This is a formatting aid, not a SQL validator.</p></header>
+      <div class="sql-options"><label><input type="radio" name="sql-case" value="upper" checked /> UPPERCASE KEYWORDS</label><label><input type="radio" name="sql-case" value="lower" /> lowercase keywords</label><button type="button" id="sql-format">FORMAT QUERY</button></div>
+      <section class="work-area">
+        <div class="work-panel"><div class="panel-header"><label for="sql-input">QUERY INPUT</label><button type="button" id="sql-sample">SAMPLE</button></div><textarea id="sql-input" spellcheck="false" placeholder="select customer_id, count(*) from orders group by customer_id" aria-label="SQL query input"></textarea></div>
+        <div class="direction" aria-hidden="true">→</div>
+        <div class="work-panel"><div class="panel-header"><label for="sql-output">FORMATTED QUERY</label><div class="panel-actions"><button type="button" id="sql-copy">COPY</button><button type="button" id="sql-clear">CLEAR</button></div></div><pre id="sql-output" aria-live="polite">Formatted SQL will appear here.</pre></div>
+      </section>
+      <p id="sql-status" class="status" aria-live="polite">Paste a query to begin.</p>
+    </main>
+    <script src="app.js"></script>
+  </body>
+</html>
