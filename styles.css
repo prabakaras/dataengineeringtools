@@ -54,6 +54,15 @@ h1 em { color: var(--blue); font-style: normal; font-weight: 700; }
 .primary-link { width: fit-content; padding: 11px 16px; border: 1px solid var(--blue); border-radius: 5px; background: var(--blue); color: #fff; font-size: 13px; font-weight: 700; }
 .primary-link:hover { background: var(--blue-dark); }
 .primary-link span { margin-left: 10px; }
+.capability-banner { display: grid; grid-template-columns: minmax(280px, 1fr) auto auto auto; gap: 22px; align-items: center; margin-top: 16px; padding: 14px 18px; border: 1px solid #c4d7e6; border-radius: 7px; background: var(--navy); color: #edf7ff; box-shadow: 0 6px 16px rgba(16, 42, 67, .11); }
+.banner-intro { display: flex; min-width: 0; gap: 9px; align-items: center; color: #c7d8e6; font-size: 12px; }
+.banner-intro strong { color: #fff; font: 500 11px "DM Mono", monospace; letter-spacing: .55px; white-space: nowrap; }
+.banner-signal { width: 8px; height: 8px; flex: 0 0 8px; border-radius: 50%; background: #5dd1bc; box-shadow: 0 0 0 4px rgba(93, 209, 188, .16); }
+.banner-stat { display: grid; grid-template-columns: auto auto; gap: 7px; align-items: baseline; white-space: nowrap; }
+.banner-stat strong { color: #7cd9ef; font: 700 22px Manrope, sans-serif; }
+.banner-stat span, .banner-topics { color: #b2c8d8; font: 10px "DM Mono", monospace; letter-spacing: .55px; }
+.banner-topics { display: flex; gap: 10px; justify-content: flex-end; white-space: nowrap; }
+.banner-topics span + span::before { margin-right: 10px; color: #5a7891; content: "/"; }
 
 .tool-index { padding: 64px 0 80px; }
 .section-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 30px; margin-bottom: 24px; }
@@ -168,6 +177,8 @@ pre { min-height: 380px; height: auto; }
   .site-shell, .tool-layout { padding-left: 18px; padding-right: 18px; }
   .topbar p { display: none; }
   .hero { min-height: 350px; margin-top: 16px; padding: 30px 24px; }
+  .capability-banner { grid-template-columns: 1fr auto auto; gap: 12px; padding: 14px; }
+  .banner-intro > span:last-child, .banner-topics { display: none; }
   .section-heading { display: block; }
   .section-heading .eyebrow { margin-bottom: 12px; }
   .tool-grid, .work-area, .convert-layout { grid-template-columns: 1fr; }
