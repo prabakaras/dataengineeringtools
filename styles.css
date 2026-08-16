@@ -69,6 +69,7 @@ h2 { margin: 0; color: var(--navy); font-size: clamp(24px, 3vw, 34px); font-weig
 .card-teal .tool-icon { background: #e4f4f0; color: var(--success); font-size: 10px; }
 .tool-name { color: var(--navy); font-size: 20px; font-weight: 700; line-height: 1.3; }
 .tool-description { margin: 10px 0 0; max-width: 260px; color: var(--muted); font-size: 12px; line-height: 1.55; }
+.tool-meta { margin-top: auto; padding-top: 18px; color: var(--blue); font: 10px "DM Mono", monospace; letter-spacing: .35px; }
 .card-arrow { position: absolute; top: 21px; right: 22px; color: var(--blue); font-size: 18px; }
 footer { padding: 25px 28px; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; letter-spacing: .7px; text-align: center; }
 
