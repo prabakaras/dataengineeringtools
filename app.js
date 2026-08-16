@@ -441,3 +441,36 @@ function setupJsonTable() {
 }
 
 setupJsonTable();
+
+function setupToolCatalog() {
+  const grid = document.querySelector(".tool-grid");
+  if (!grid) return;
+  const search = byId("tool-search"); const group = byId("tool-group"); const favoritesOnly = byId("favorites-only"); const count = byId("catalog-count");
+  const storageKey = "prabakar-tools-favorites";
+  const favorites = new Set(JSON.parse(localStorage.getItem(storageKey) || "[]"));
+  const cards = [...grid.querySelectorAll("a.tool-card")].map((link) => {
+    const card = document.createElement("article");
+    card.className = link.className;
+    card.dataset.group = link.dataset.group;
+    card.dataset.keywords = `${link.dataset.keywords} ${link.textContent}`.toLowerCase();
+    link.className = "tool-card-link";
+    const favorite = document.createElement("button");
+    favorite.type = "button"; favorite.className = "favorite-button"; favorite.setAttribute("aria-label", `Add ${link.querySelector(".tool-name").textContent.replace(/\s+/g, " ").trim()} to favorites`);
+    const toolId = link.getAttribute("href");
+    const updateFavorite = () => { const selected = favorites.has(toolId); favorite.textContent = selected ? "★" : "☆"; favorite.setAttribute("aria-pressed", String(selected)); favorite.setAttribute("aria-label", `${selected ? "Remove" : "Add"} ${link.querySelector(".tool-name").textContent.replace(/\s+/g, " ").trim()} ${selected ? "from" : "to"} favorites`); };
+    favorite.addEventListener("click", () => { if (favorites.has(toolId)) favorites.delete(toolId); else favorites.add(toolId); localStorage.setItem(storageKey, JSON.stringify([...favorites])); updateFavorite(); filter(); });
+    link.replaceWith(card); card.append(link, favorite); updateFavorite(); return { card, toolId };
+  });
+  const filter = () => {
+    const term = search.value.trim().toLowerCase(); const selectedGroup = group.value; const favoriteOnly = favoritesOnly.checked;
+    let visible = 0;
+    cards.forEach(({ card, toolId }) => {
+      const matches = (!term || card.dataset.keywords.includes(term)) && (selectedGroup === "all" || card.dataset.group === selectedGroup) && (!favoriteOnly || favorites.has(toolId));
+      card.classList.toggle("is-hidden", !matches); if (matches) visible += 1;
+    });
+    count.textContent = `${visible} tool${visible === 1 ? "" : "s"} shown`;
+  };
+  search.addEventListener("input", filter); group.addEventListener("change", filter); favoritesOnly.addEventListener("change", filter); filter();
+}
+
+setupToolCatalog();
