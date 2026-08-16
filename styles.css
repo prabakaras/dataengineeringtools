@@ -148,6 +148,8 @@ pre { min-height: 380px; height: auto; }
 .generator-controls button:disabled { cursor: not-allowed; opacity: .45; }
 .panel-meta { color: var(--muted); font: 10px "DM Mono", monospace; }
 .data-preview { min-height: 380px; }
+.table-search { width: 160px; padding: 7px 9px; border: 1px solid #b9c8d4; border-radius: 4px; color: var(--ink); font: 11px "DM Mono", monospace; }
+.table-search:focus { border-color: var(--blue); outline: 3px solid rgba(23, 105, 170, .13); }
 
 @media (max-width: 720px) {
   .site-shell, .tool-layout { padding-left: 18px; padding-right: 18px; }

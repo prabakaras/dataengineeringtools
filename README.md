@@ -26,6 +26,7 @@ Small data tasks often interrupt delivery work: formatting a payload, checking a
 | Data Masking | Mask common sensitive values before sharing text extracts. | [Open tool](https://prabakaras.github.io/dataengineeringtools/mask.html) |
 | Cron Helper | Explain standard five-field cron expressions. | [Open tool](https://prabakaras.github.io/dataengineeringtools/cron.html) |
 | Synthetic Data Generator | Generate test data from common DDL and export CSV, Excel-compatible data, or SQL inserts. | [Open tool](https://prabakaras.github.io/dataengineeringtools/synthetic.html) |
+| JSON to Table | Flatten JSON records into a searchable table and export the results. | [Open tool](https://prabakaras.github.io/dataengineeringtools/json-table.html) |
 
 ## Common Workflows
 

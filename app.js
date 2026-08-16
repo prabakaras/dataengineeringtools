@@ -403,3 +403,41 @@ function setupSyntheticData() {
 }
 
 setupSyntheticData();
+
+function setupJsonTable() {
+  const input = byId("json-table-input");
+  if (!input) return;
+  const output = byId("json-table-output"); const status = byId("json-table-status"); const search = byId("json-table-search");
+  const csvButton = byId("json-table-csv"); const excelButton = byId("json-table-excel");
+  let columns = []; let rows = [];
+  const flatten = (value, prefix = "") => {
+    if (value === null || value === undefined) return { [prefix || "value"]: "" };
+    if (Array.isArray(value)) return { [prefix || "value"]: JSON.stringify(value) };
+    if (typeof value !== "object") return { [prefix || "value"]: value };
+    return Object.entries(value).reduce((flat, [key, nested]) => Object.assign(flat, flatten(nested, prefix ? `${prefix}.${key}` : key)), {});
+  };
+  const render = () => {
+    const term = search.value.trim().toLowerCase();
+    const visibleRows = rows.filter((row) => !term || columns.some((column) => String(row[column] ?? "").toLowerCase().includes(term)));
+    output.innerHTML = `<table><thead><tr>${columns.map((column) => `<th>${escapeHtml(column)}</th>`).join("")}</tr></thead><tbody>${visibleRows.map((row) => `<tr>${columns.map((column) => `<td>${escapeHtml(row[column] ?? "")}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
+    setStatus(status, `${visibleRows.length} of ${rows.length} row${rows.length === 1 ? "" : "s"} shown. ${columns.length} column${columns.length === 1 ? "" : "s"}.`);
+  };
+  const convert = () => {
+    try {
+      const value = input.value.trim();
+      if (!value) { rows = []; columns = []; output.textContent = "Paste an object or an array of objects to create a table."; search.disabled = true; csvButton.disabled = true; excelButton.disabled = true; setStatus(status, "Paste JSON to create a table."); return; }
+      const parsed = JSON.parse(value); const records = Array.isArray(parsed) ? parsed : [parsed];
+      if (!records.length || !records.every((record) => record && typeof record === "object" && !Array.isArray(record))) throw new Error("Use a JSON object or an array of JSON objects.");
+      rows = records.map((record) => flatten(record)); columns = [...new Set(rows.flatMap((row) => Object.keys(row)))];
+      search.disabled = false; csvButton.disabled = false; excelButton.disabled = false; render();
+    } catch (error) { rows = []; columns = []; output.textContent = "Table output will appear here."; search.disabled = true; csvButton.disabled = true; excelButton.disabled = true; setStatus(status, `Invalid JSON: ${error.message}`, true); }
+  };
+  const download = (text, filename, type) => { const blob = new Blob([text], { type }); const link = Object.assign(document.createElement("a"), { href: URL.createObjectURL(blob), download: filename }); link.click(); URL.revokeObjectURL(link.href); };
+  input.addEventListener("input", convert); search.addEventListener("input", render);
+  byId("json-table-sample").addEventListener("click", () => { input.value = '[\n  {"id": 101, "customer": {"name": "Ava Chen", "email": "ava@example.test"}, "status": "active", "tags": ["priority", "new"]},\n  {"id": 102, "customer": {"name": "Leo Martin", "email": "leo@example.test"}, "status": "pending", "tags": ["review"]}\n]'; convert(); });
+  byId("json-table-file").addEventListener("change", (event) => { const [file] = event.target.files; if (!file) return; const reader = new FileReader(); reader.onload = () => { input.value = reader.result; convert(); }; reader.readAsText(file); });
+  csvButton.addEventListener("click", () => download(`\ufeff${[columns.map(escapeCsv).join(","), ...rows.map((row) => columns.map((column) => escapeCsv(row[column])).join(","))].join("\r\n")}`, "json-table.csv", "text/csv;charset=utf-8"));
+  excelButton.addEventListener("click", () => { const table = `<table><thead><tr>${columns.map((column) => `<th>${escapeHtml(column)}</th>`).join("")}</tr></thead><tbody>${rows.map((row) => `<tr>${columns.map((column) => `<td>${escapeHtml(row[column] ?? "")}</td>`).join("")}</tr>`).join("")}</tbody></table>`; download(`\ufeff<html><head><meta charset="UTF-8"></head><body>${table}</body></html>`, "json-table.xls", "application/vnd.ms-excel;charset=utf-8"); });
+}
+
+setupJsonTable();
