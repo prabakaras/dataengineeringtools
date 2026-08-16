@@ -21,6 +21,7 @@ Open the toolkit at [prabakaras.github.io/dataengineeringtools](https://prabakar
 | Data Quality Rules | Generate starter SQL for null, duplicate, range, and value checks. | [Open tool](https://prabakaras.github.io/dataengineeringtools/quality.html) |
 | Data Masking | Mask common sensitive values before sharing text extracts. | [Open tool](https://prabakaras.github.io/dataengineeringtools/mask.html) |
 | Cron Helper | Explain standard five-field cron expressions. | [Open tool](https://prabakaras.github.io/dataengineeringtools/cron.html) |
+| Synthetic Data Generator | Generate test data from common DDL and export CSV, Excel-compatible data, or SQL inserts. | [Open tool](https://prabakaras.github.io/dataengineeringtools/synthetic.html) |
 
 ## Privacy
 

@@ -337,3 +337,69 @@ setupYaml();
 setupQualityRules();
 setupMasking();
 setupCron();
+
+function setupSyntheticData() {
+  const ddl = byId("synthetic-ddl");
+  if (!ddl) return;
+  const count = byId("synthetic-count"); const output = byId("synthetic-output"); const status = byId("synthetic-status"); const meta = byId("synthetic-meta");
+  const exportButtons = [byId("synthetic-csv"), byId("synthetic-excel"), byId("synthetic-sql")];
+  let generatedRows = []; let generatedColumns = []; let tableName = "synthetic_data";
+  const firstNames = ["Ava", "Noah", "Mia", "Liam", "Priya", "Ethan", "Zara", "Arun", "Nora", "Mateo", "Ivy", "Leo"];
+  const lastNames = ["Patel", "Chen", "Smith", "Garcia", "Kumar", "Brown", "Wilson", "Taylor", "Martin", "Davis"];
+  const cities = ["Chennai", "Bengaluru", "London", "Singapore", "New York", "Toronto", "Sydney", "Berlin"];
+  const pick = (items) => items[Math.floor(Math.random() * items.length)];
+  const identifier = (value) => value.replace(/^[\[\`\"]|[\]\`\"]$/g, "").trim();
+  const parseDdl = (text) => {
+    const tableMatch = text.match(/CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?([\[\]`"\w.]+)/i);
+    if (!tableMatch) throw new Error("Start with a CREATE TABLE statement.");
+    const opening = text.indexOf("(", tableMatch.index); const closing = text.lastIndexOf(")");
+    if (opening < 0 || closing <= opening) throw new Error("Could not find the column list in parentheses.");
+    const definitions = text.slice(opening + 1, closing).split(/,(?![^()]*\))/);
+    const columns = definitions.map((definition) => definition.trim()).filter((definition) => definition && !/^(PRIMARY|FOREIGN|UNIQUE|CONSTRAINT|CHECK|KEY|INDEX)\b/i.test(definition)).map((definition) => {
+      const match = definition.match(/^([\[\]`"\w]+)\s+([\w]+(?:\s*\([^)]*\))?)/i);
+      if (!match) return null;
+      return { name: identifier(match[1]), type: match[2].toLowerCase(), nullable: !/\bNOT\s+NULL\b/i.test(definition) };
+    }).filter(Boolean);
+    if (!columns.length) throw new Error("No supported column definitions were found.");
+    return { table: identifier(tableMatch[1].split(".").pop()), columns };
+  };
+  const randomValue = (column, rowIndex) => {
+    const name = column.name.toLowerCase(); const type = column.type;
+    if (/(^|_)(id|.*_id)$/.test(name)) return rowIndex + 1001;
+    if (/bool|bit/.test(type)) return Math.random() > .35;
+    if (/date|time/.test(type)) { const date = new Date(Date.now() - Math.floor(Math.random() * 365 * 86400000)); return /date$/.test(type) && !/time/.test(type) ? date.toISOString().slice(0, 10) : date.toISOString().slice(0, 19).replace("T", " "); }
+    if (/int|decimal|numeric|float|double|real|money/.test(type)) return /price|amount|cost|revenue|total|balance/.test(name) ? (Math.random() * 5000 + 10).toFixed(2) : Math.floor(Math.random() * 9000) + 100;
+    if (/email/.test(name)) { const first = pick(firstNames).toLowerCase(); return `${first}.${pick(lastNames).toLowerCase()}${rowIndex}@example.test`; }
+    if (/first.?name|given.?name/.test(name)) return pick(firstNames);
+    if (/last.?name|surname|family.?name/.test(name)) return pick(lastNames);
+    if (/name/.test(name)) return `${pick(firstNames)} ${pick(lastNames)}`;
+    if (/city/.test(name)) return pick(cities);
+    if (/status/.test(name)) return pick(["active", "pending", "inactive"]);
+    if (/phone|mobile/.test(name)) return `+1-555-${String(Math.floor(Math.random() * 10000)).padStart(4, "0")}`;
+    if (/uuid|guid/.test(name)) return crypto.randomUUID ? crypto.randomUUID() : `${rowIndex}-0000-4000-8000-${String(Math.random()).slice(2, 14)}`;
+    if (/code/.test(name)) return `${column.name.slice(0, 3).toUpperCase()}-${String(rowIndex + 1).padStart(5, "0")}`;
+    return `${column.name}_${String(rowIndex + 1).padStart(4, "0")}`;
+  };
+  const renderPreview = () => {
+    const preview = generatedRows.slice(0, 20);
+    output.innerHTML = `<table><thead><tr>${generatedColumns.map((column) => `<th>${escapeHtml(column.name)}</th>`).join("")}</tr></thead><tbody>${preview.map((row) => `<tr>${generatedColumns.map((column) => `<td>${escapeHtml(row[column.name])}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
+  };
+  const generate = () => {
+    try {
+      const parsed = parseDdl(ddl.value); const rowCount = Number(count.value);
+      if (!Number.isInteger(rowCount) || rowCount < 1 || rowCount > 10000) throw new Error("Choose a whole row count between 1 and 10,000.");
+      tableName = parsed.table; generatedColumns = parsed.columns; generatedRows = Array.from({ length: rowCount }, (_, rowIndex) => Object.fromEntries(parsed.columns.map((column) => [column.name, column.nullable && Math.random() < .04 ? null : randomValue(column, rowIndex)])));
+      renderPreview(); meta.textContent = `${rowCount} rows / ${parsed.columns.length} columns`; exportButtons.forEach((button) => { button.disabled = false; });
+      setStatus(status, `${rowCount} synthetic rows generated for ${tableName}. Values are fictional and generated locally.`);
+    } catch (error) { generatedRows = []; generatedColumns = []; output.textContent = "Generate data to preview the first rows."; exportButtons.forEach((button) => { button.disabled = true; }); setStatus(status, error.message, true); }
+  };
+  const download = (text, filename, type) => { const blob = new Blob([text], { type }); const link = Object.assign(document.createElement("a"), { href: URL.createObjectURL(blob), download: filename }); link.click(); URL.revokeObjectURL(link.href); };
+  const toCsv = () => [generatedColumns.map((column) => escapeCsv(column.name)).join(","), ...generatedRows.map((row) => generatedColumns.map((column) => escapeCsv(row[column.name])).join(","))].join("\r\n");
+  byId("synthetic-generate").addEventListener("click", generate);
+  byId("synthetic-sample").addEventListener("click", () => { ddl.value = "CREATE TABLE customers (\n  customer_id INT PRIMARY KEY,\n  first_name VARCHAR(80) NOT NULL,\n  last_name VARCHAR(80) NOT NULL,\n  email VARCHAR(120),\n  city VARCHAR(80),\n  account_balance DECIMAL(12,2),\n  active BIT,\n  created_at TIMESTAMP\n);"; generate(); });
+  byId("synthetic-csv").addEventListener("click", () => download(`\ufeff${toCsv()}`, `${tableName}_synthetic.csv`, "text/csv;charset=utf-8"));
+  byId("synthetic-excel").addEventListener("click", () => { const table = `<table><thead><tr>${generatedColumns.map((column) => `<th>${escapeHtml(column.name)}</th>`).join("")}</tr></thead><tbody>${generatedRows.map((row) => `<tr>${generatedColumns.map((column) => `<td>${escapeHtml(row[column.name] ?? "")}</td>`).join("")}</tr>`).join("")}</tbody></table>`; download(`\ufeff<html><head><meta charset="UTF-8"></head><body>${table}</body></html>`, `${tableName}_synthetic.xls`, "application/vnd.ms-excel;charset=utf-8"); });
+  byId("synthetic-sql").addEventListener("click", () => { const columns = generatedColumns.map((column) => `[${column.name}]`).join(", "); const statements = generatedRows.map((row) => { const values = generatedColumns.map((column) => { const value = row[column.name]; if (value === null) return "NULL"; if (typeof value === "boolean") return value ? "1" : "0"; if (/int|decimal|numeric|float|double|real|money|bit/.test(column.type) && !Number.isNaN(Number(value))) return value; return `'${String(value).replaceAll("'", "''")}'`; }).join(", "); return `INSERT INTO [${tableName}] (${columns}) VALUES (${values});`; }).join("\n"); download(statements, `${tableName}_synthetic.sql`, "text/sql;charset=utf-8"); });
+}
+
+setupSyntheticData();

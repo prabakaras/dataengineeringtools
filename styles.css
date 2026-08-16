@@ -140,6 +140,13 @@ pre { min-height: 380px; height: auto; }
 .regex-controls label:first-child { flex: 1 1 350px; }
 .regex-controls label:nth-child(2) { flex: 0 0 75px; }
 .compact-input { height: 115px; min-height: 115px; }
+.generator-controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; }
+.generator-controls label { display: grid; gap: 7px; color: #405569; font: 11px "DM Mono", monospace; }
+.generator-controls input { width: 90px; padding: 8px; border: 1px solid #b9c8d4; border-radius: 4px; font: 12px "DM Mono", monospace; }
+.generator-controls button:first-of-type { border-color: var(--blue); background: var(--blue); color: #fff; }
+.generator-controls button:disabled { cursor: not-allowed; opacity: .45; }
+.panel-meta { color: var(--muted); font: 10px "DM Mono", monospace; }
+.data-preview { min-height: 380px; }
 
 @media (max-width: 720px) {
   .site-shell, .tool-layout { padding-left: 18px; padding-right: 18px; }
