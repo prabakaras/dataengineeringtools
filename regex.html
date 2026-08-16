@@ -1,0 +1,10 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>Regex Tester | Prabakar's GitHub Tools</title><link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin /><link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" /><link rel="stylesheet" href="styles.css" /></head>
+  <body class="tool-page"><main class="tool-layout">
+    <nav class="tool-nav"><a class="brand" href="index.html" aria-label="Prabakar's GitHub home"><span class="brand-mark" aria-hidden="true">PG</span><span class="brand-name">PRABAKAR'S GITHUB</span></a><div class="nav-links"><a href="index.html#tools">ALL TOOLS</a><a class="active" href="regex.html">REGEX</a></div></nav>
+    <header class="tool-header"><p class="eyebrow">TOOL 07 / TEXT</p><h1>Regex <em>Tester</em></h1><p>Test JavaScript regular expressions against sample text and review every match in one place.</p></header>
+    <div class="regex-controls"><label>EXPRESSION <input id="regex-pattern" type="text" placeholder="\b[A-Z]{2}-\d{4}\b" /></label><label>FLAGS <input id="regex-flags" type="text" value="g" maxlength="6" /></label><button type="button" id="regex-run">TEST REGEX</button><button type="button" id="regex-sample">LOAD SAMPLE</button></div>
+    <section class="work-area convert-layout"><div class="work-panel"><div class="panel-header"><label for="regex-input">TEST TEXT</label></div><textarea id="regex-input" spellcheck="false" aria-label="Text to test"></textarea></div><div class="work-panel"><div class="panel-header"><label>MATCHES</label></div><div id="regex-output" class="result-area" aria-live="polite">Provide an expression and text to test.</div></div></section><p id="regex-status" class="status" aria-live="polite">Expressions execute only in your browser.</p>
+  </main><script src="app.js"></script></body>
+</html>

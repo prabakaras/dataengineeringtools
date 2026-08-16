@@ -163,3 +163,177 @@ function setupSqlTool() {
 setupJsonTool();
 setupConverter();
 setupSqlTool();
+
+function escapeHtml(value) {
+  return String(value).replace(/[&<>'"]/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[character]);
+}
+
+function setupProfiler() {
+  const input = byId("profile-input");
+  if (!input) return;
+  const output = byId("profile-output");
+  const status = byId("profile-status");
+  const profile = () => {
+    try {
+      const rows = parseCsv(input.value);
+      if (rows.length < 2) throw new Error("Provide a header row and at least one data row.");
+      const headers = rows[0];
+      const data = rows.slice(1);
+      const summary = headers.map((header, index) => {
+        const values = data.map((row) => row[index] ?? "");
+        const populated = values.filter((value) => value.trim() !== "");
+        const numeric = populated.length > 0 && populated.every((value) => !Number.isNaN(Number(value)) && value.trim() !== "");
+        return `<tr><td>${escapeHtml(header || `column_${index + 1}`)}</td><td>${populated.length}/${data.length}</td><td>${new Set(populated).size}</td><td>${numeric ? "Number" : "Text"}</td><td>${escapeHtml(populated.slice(0, 2).join(", ") || "-")}</td></tr>`;
+      }).join("");
+      output.innerHTML = `<div class="metric-row"><strong>${data.length}</strong><span>data rows</span><strong>${headers.length}</strong><span>columns</span></div><table><thead><tr><th>Column</th><th>Filled</th><th>Unique</th><th>Inferred type</th><th>Sample</th></tr></thead><tbody>${summary}</tbody></table>`;
+      setStatus(status, `Profile complete: ${data.length} rows and ${headers.length} columns.`);
+    } catch (error) { output.textContent = "Profile results will appear here."; setStatus(status, error.message, true); }
+  };
+  byId("profile-run").addEventListener("click", profile);
+  byId("profile-sample").addEventListener("click", () => { input.value = "customer_id,region,revenue,active\n101,North,250.00,true\n102,South,175.50,true\n103,North,,false\n104,West,310.00,true"; profile(); });
+  byId("profile-file").addEventListener("change", (event) => { const [file] = event.target.files; if (!file) return; const reader = new FileReader(); reader.onload = () => { input.value = reader.result; profile(); }; reader.readAsText(file); });
+}
+
+function setupDiff() {
+  const left = byId("diff-left");
+  if (!left) return;
+  const right = byId("diff-right");
+  const output = byId("diff-output");
+  const status = byId("diff-status");
+  const compare = () => {
+    const original = left.value.split("\n");
+    const revised = right.value.split("\n");
+    if (!left.value && !right.value) { setStatus(status, "Add text to compare.", true); return; }
+    const length = Math.max(original.length, revised.length);
+    let added = 0; let removed = 0; let changed = 0;
+    const lines = Array.from({ length }, (_, index) => {
+      const before = original[index]; const after = revised[index];
+      if (before === after) return `<div class="diff-line"><span>${index + 1}</span><code>${escapeHtml(before ?? "")}</code></div>`;
+      if (before === undefined) { added += 1; return `<div class="diff-line diff-add"><span>+</span><code>${escapeHtml(after)}</code></div>`; }
+      if (after === undefined) { removed += 1; return `<div class="diff-line diff-remove"><span>-</span><code>${escapeHtml(before)}</code></div>`; }
+      changed += 1; return `<div class="diff-line diff-remove"><span>-</span><code>${escapeHtml(before)}</code></div><div class="diff-line diff-add"><span>+</span><code>${escapeHtml(after)}</code></div>`;
+    }).join("");
+    output.innerHTML = lines || "No differences found.";
+    setStatus(status, `${added} added, ${removed} removed, ${changed} changed line${added + removed + changed === 1 ? "" : "s"}.`);
+  };
+  byId("diff-run").addEventListener("click", compare);
+  byId("diff-sample").addEventListener("click", () => { left.value = "SELECT customer_id\nFROM orders\nWHERE status = 'paid'"; right.value = "SELECT customer_id, total\nFROM orders\nWHERE status = 'completed'"; compare(); });
+}
+
+function setupTimestamp() {
+  const input = byId("timestamp-input");
+  if (!input) return;
+  const output = byId("timestamp-output"); const status = byId("timestamp-status");
+  const convert = () => {
+    const value = input.value.trim();
+    if (!value) { setStatus(status, "Enter a Unix timestamp or date value.", true); return; }
+    const numeric = /^-?\d+(\.\d+)?$/.test(value);
+    const date = numeric ? new Date(Number(value) * (value.length <= 10 ? 1000 : 1)) : new Date(value);
+    if (Number.isNaN(date.getTime())) { setStatus(status, "That value is not a valid timestamp or date.", true); return; }
+    output.innerHTML = `<dl class="key-values"><dt>ISO 8601</dt><dd>${date.toISOString()}</dd><dt>UTC</dt><dd>${date.toUTCString()}</dd><dt>Local</dt><dd>${date.toLocaleString()}</dd><dt>Unix seconds</dt><dd>${Math.floor(date.getTime() / 1000)}</dd><dt>Unix milliseconds</dt><dd>${date.getTime()}</dd></dl>`;
+    setStatus(status, "Conversion complete.");
+  };
+  byId("timestamp-run").addEventListener("click", convert);
+  byId("timestamp-now").addEventListener("click", () => { input.value = String(Date.now()); convert(); });
+  byId("timestamp-copy").addEventListener("click", () => copyText(output.innerText, status));
+}
+
+function setupRegex() {
+  const pattern = byId("regex-pattern");
+  if (!pattern) return;
+  const flags = byId("regex-flags"); const input = byId("regex-input"); const output = byId("regex-output"); const status = byId("regex-status");
+  const test = () => {
+    try {
+      const regex = new RegExp(pattern.value, flags.value.includes("g") ? flags.value : `${flags.value}g`);
+      const matches = [...input.value.matchAll(regex)];
+      output.innerHTML = matches.length ? `<p class="result-summary">${matches.length} match${matches.length === 1 ? "" : "es"}</p>${matches.map((match, index) => `<div class="match-row"><span>${index + 1}</span><code>${escapeHtml(match[0])}</code><small>index ${match.index}</small></div>`).join("")}` : "No matches found.";
+      setStatus(status, `${matches.length} match${matches.length === 1 ? "" : "es"} found.`);
+    } catch (error) { output.textContent = "Match results will appear here."; setStatus(status, `Invalid regular expression: ${error.message}`, true); }
+  };
+  byId("regex-run").addEventListener("click", test);
+  byId("regex-sample").addEventListener("click", () => { pattern.value = "\\b[A-Z]{2}-\\d{4}\\b"; flags.value = "g"; input.value = "Tickets DE-1024 and QA-8001 are ready. The code DEV-77 is not in scope."; test(); });
+}
+
+setupProfiler();
+setupDiff();
+setupTimestamp();
+setupRegex();
+
+function setupYaml() {
+  const input = byId("yaml-input");
+  if (!input) return;
+  const output = byId("yaml-output"); const status = byId("yaml-status");
+  const validate = () => {
+    const lines = input.value.split("\n"); const errors = []; let previousIndent = 0;
+    lines.forEach((line, index) => {
+      if (!line.trim() || line.trim().startsWith("#")) return;
+      const indent = line.match(/^ */)[0].length;
+      if (indent % 2 !== 0) errors.push(`Line ${index + 1}: use an even number of spaces for indentation.`);
+      if (indent > previousIndent + 2) errors.push(`Line ${index + 1}: indentation jumps more than one level.`);
+      if (!/^\s*(-\s+.+|[^:#][^:]*:\s*.*)$/.test(line)) errors.push(`Line ${index + 1}: expected a key/value mapping or list item.`);
+      previousIndent = indent;
+    });
+    if (!input.value.trim()) errors.push("Paste YAML to validate it.");
+    output.innerHTML = errors.length ? `<ul class="validation-list">${errors.map((error) => `<li>${escapeHtml(error)}</li>`).join("")}</ul>` : "<p class=\"result-summary\">No common structural problems found.</p><p>Use a full YAML parser in your CI pipeline for schema-level validation.</p>";
+    setStatus(status, errors.length ? `${errors.length} issue${errors.length === 1 ? "" : "s"} found.` : "Basic YAML validation passed.", Boolean(errors.length));
+  };
+  byId("yaml-run").addEventListener("click", validate);
+  byId("yaml-sample").addEventListener("click", () => { input.value = "service:\n  name: analytics-api\n  replicas: 2\n  environment:\n    - production\n    - reporting"; validate(); });
+}
+
+function setupQualityRules() {
+  const table = byId("quality-table");
+  if (!table) return;
+  const column = byId("quality-column"); const rule = byId("quality-rule"); const detail = byId("quality-detail"); const output = byId("quality-output"); const status = byId("quality-status");
+  const generate = () => {
+    const tableName = table.value.trim(); const columnName = column.value.trim(); const detailValue = detail.value.trim();
+    if (!/^[A-Za-z_][A-Za-z0-9_.]*$/.test(tableName) || !/^[A-Za-z_][A-Za-z0-9_]*$/.test(columnName)) { setStatus(status, "Use simple table and column identifiers.", true); return; }
+    let sql;
+    if (rule.value === "not-null") sql = `SELECT COUNT(*) AS failing_rows\nFROM ${tableName}\nWHERE ${columnName} IS NULL;`;
+    if (rule.value === "unique") sql = `SELECT ${columnName}, COUNT(*) AS duplicate_count\nFROM ${tableName}\nGROUP BY ${columnName}\nHAVING COUNT(*) > 1;`;
+    if (rule.value === "range") { const [minimum, maximum] = detailValue.split(",").map((value) => value.trim()); if (!minimum || !maximum || Number.isNaN(Number(minimum)) || Number.isNaN(Number(maximum))) { setStatus(status, "For a range, provide min,max. For example: 0,100.", true); return; } sql = `SELECT COUNT(*) AS failing_rows\nFROM ${tableName}\nWHERE ${columnName} NOT BETWEEN ${minimum} AND ${maximum}\n   OR ${columnName} IS NULL;`; }
+    if (rule.value === "accepted") { const values = detailValue.split(",").map((value) => value.trim()).filter(Boolean); if (!values.length) { setStatus(status, "Provide comma-separated accepted values.", true); return; } sql = `SELECT DISTINCT ${columnName}\nFROM ${tableName}\nWHERE ${columnName} NOT IN (${values.map((value) => `'${value.replaceAll("'", "''")}'`).join(", ")})\n   OR ${columnName} IS NULL;`; }
+    output.textContent = sql; setStatus(status, "SQL check generated. Review it for your database dialect.");
+  };
+  byId("quality-run").addEventListener("click", generate);
+  byId("quality-sample").addEventListener("click", () => { table.value = "orders"; column.value = "status"; rule.value = "accepted"; detail.value = "pending,paid,refunded"; generate(); });
+  byId("quality-copy").addEventListener("click", () => copyText(output.textContent, status));
+}
+
+function setupMasking() {
+  const input = byId("mask-input");
+  if (!input) return;
+  const output = byId("mask-output"); const status = byId("mask-status");
+  const mask = () => {
+    let text = input.value;
+    if (byId("mask-email").checked) text = text.replace(/\b([A-Za-z0-9._%+-])[A-Za-z0-9._%+-]*(@[A-Za-z0-9.-]+\.[A-Za-z]{2,})\b/g, "$1***$2");
+    if (byId("mask-phone").checked) text = text.replace(/\b(?:\+?\d[\d .()-]{7,}\d)\b/g, (value) => `${"*".repeat(Math.max(0, value.length - 4))}${value.slice(-4)}`);
+    if (byId("mask-id").checked) text = text.replace(/\b\d{8,}\b/g, (value) => `${"*".repeat(value.length - 4)}${value.slice(-4)}`);
+    output.textContent = text || "Masked text will appear here."; setStatus(status, text ? "Masking complete. Review the result before sharing." : "Add text to mask.", !text);
+  };
+  byId("mask-run").addEventListener("click", mask);
+  byId("mask-sample").addEventListener("click", () => { input.value = "Customer: ava.chen@example.com\nPhone: +1 (555) 123-4567\nAccount ID: 8392017645"; mask(); });
+  byId("mask-copy").addEventListener("click", () => copyText(output.textContent, status));
+}
+
+function setupCron() {
+  const input = byId("cron-input");
+  if (!input) return;
+  const output = byId("cron-output"); const status = byId("cron-status");
+  const names = { month: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"], weekday: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"] };
+  const label = (value, unit, values) => value === "*" ? `every ${unit}` : values && /^\d+$/.test(value) && values[Number(value)] ? values[Number(value)] : value.includes("/") ? `every ${value.split("/")[1]} ${unit}s` : value;
+  const explain = () => {
+    const fields = input.value.trim().split(/\s+/);
+    if (fields.length !== 5 || !fields.every((field) => /^[\d*/,-]+$/.test(field))) { setStatus(status, "Use five fields containing numbers, *, /, commas, or ranges.", true); return; }
+    const [minute, hour, day, month, weekday] = fields;
+    output.innerHTML = `<dl class="key-values"><dt>Minute</dt><dd>${escapeHtml(label(minute, "minute"))}</dd><dt>Hour</dt><dd>${escapeHtml(label(hour, "hour"))}</dd><dt>Day of month</dt><dd>${escapeHtml(label(day, "day"))}</dd><dt>Month</dt><dd>${escapeHtml(label(month, "month", names.month))}</dd><dt>Day of week</dt><dd>${escapeHtml(label(weekday, "day", names.weekday))}</dd></dl><p class="result-summary">Expression: <code>${escapeHtml(input.value.trim())}</code></p>`;
+    setStatus(status, "Schedule fields explained. Confirm timezone with the scheduler that runs it.");
+  };
+  byId("cron-run").addEventListener("click", explain);
+  byId("cron-sample").addEventListener("click", () => { input.value = "*/15 8-18 * * 1-5"; explain(); });
+}
+
+setupYaml();
+setupQualityRules();
+setupMasking();
+setupCron();

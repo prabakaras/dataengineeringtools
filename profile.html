@@ -1,0 +1,10 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>CSV Data Profiler | Prabakar's GitHub Tools</title><link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin /><link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" /><link rel="stylesheet" href="styles.css" /></head>
+  <body class="tool-page"><main class="tool-layout">
+    <nav class="tool-nav"><a class="brand" href="index.html" aria-label="Prabakar's GitHub home"><span class="brand-mark" aria-hidden="true">PG</span><span class="brand-name">PRABAKAR'S GITHUB</span></a><div class="nav-links"><a href="index.html#tools">ALL TOOLS</a><a class="active" href="profile.html">PROFILE</a></div></nav>
+    <header class="tool-header"><p class="eyebrow">TOOL 04 / DATA QUALITY</p><h1>CSV Data <em>Profiler</em></h1><p>Inspect the shape and completeness of a CSV extract before sharing, loading, or modeling it.</p></header>
+    <div class="control-row"><button type="button" id="profile-run">PROFILE DATA</button><button type="button" id="profile-sample">LOAD SAMPLE</button><label class="file-button">IMPORT CSV<input type="file" id="profile-file" accept=".csv,text/csv" /></label></div>
+    <section class="work-area convert-layout"><div class="work-panel"><div class="panel-header"><label for="profile-input">CSV INPUT</label></div><textarea id="profile-input" spellcheck="false" placeholder="customer_id,region,revenue&#10;101,North,250.00" aria-label="CSV input"></textarea></div><div class="work-panel"><div class="panel-header"><label>PROFILE RESULTS</label></div><div id="profile-output" class="result-area" aria-live="polite">Run a profile to inspect column-level statistics.</div></div></section><p id="profile-status" class="status" aria-live="polite">Paste a CSV file with a header row to begin.</p>
+  </main><script src="app.js"></script></body>
+</html>
