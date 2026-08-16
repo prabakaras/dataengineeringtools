@@ -1,12 +1,27 @@
-# Workbench
+# Prabakar's GitHub Tools
 
-A static, client-side toolbox for formatting JSON, converting CSV and JSON, and formatting SQL.
+A lightweight, browser-based toolbox for common data and developer tasks. The site is static and hosted on GitHub Pages.
 
-## Publish with GitHub Pages
+## Live Site
 
-1. Create a GitHub repository and push these files to its `main` branch.
-2. In the repository, open **Settings > Pages**.
-3. Under **Build and deployment**, select **Deploy from a branch**.
-4. Select the `main` branch and the `/ (root)` folder, then save.
+Open the toolkit at [prabakaras.github.io/dataengineeringtools](https://prabakaras.github.io/dataengineeringtools/).
 
-GitHub will publish the site at `https://<account>.github.io/<repository>/`. All tools run locally in the visitor's browser; no pasted or imported data is uploaded.
+## Available Tools
+
+| Tool | Purpose | Link |
+| --- | --- | --- |
+| JSON Formatter & Validator | Validate and format JSON with two-space indentation. | [Open tool](https://prabakaras.github.io/dataengineeringtools/json.html) |
+| CSV / JSON Converter | Convert CSV to JSON or an array of JSON objects to CSV. | [Open tool](https://prabakaras.github.io/dataengineeringtools/convert.html) |
+| SQL Formatter | Structure SQL queries and choose uppercase or lowercase keywords. | [Open tool](https://prabakaras.github.io/dataengineeringtools/sql.html) |
+
+## Privacy
+
+All processing happens locally in the browser. Pasted content and imported files are not uploaded to a server.
+
+## Run Locally
+
+Open `index.html` directly in a browser. No build process, package installation, or server is required.
+
+## Publish Updates
+
+GitHub Pages deploys the contents of the `main` branch from the repository root. Push changes to `main` to publish an update.
