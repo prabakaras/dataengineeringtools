@@ -1,10 +1,14 @@
 # Prabakar's GitHub Tools
 
-A lightweight, browser-based toolbox for common data and developer tasks. The site is static and hosted on GitHub Pages.
+A lightweight, browser-based toolbox for everyday data engineering, data analysis, and developer tasks. It is a static GitHub Pages site with no backend, accounts, or dependencies.
 
 ## Live Site
 
 Open the toolkit at [prabakaras.github.io/dataengineeringtools](https://prabakaras.github.io/dataengineeringtools/).
+
+## Why This Exists
+
+Small data tasks often interrupt delivery work: formatting a payload, checking a CSV extract, comparing a SQL query, or creating safe records for a test environment. This project keeps those utilities in one public, fast-loading workspace. Every tool runs in the browser so it can be used without installing software or sharing working data with a service.
 
 ## Available Tools
 
@@ -23,14 +27,75 @@ Open the toolkit at [prabakaras.github.io/dataengineeringtools](https://prabakar
 | Cron Helper | Explain standard five-field cron expressions. | [Open tool](https://prabakaras.github.io/dataengineeringtools/cron.html) |
 | Synthetic Data Generator | Generate test data from common DDL and export CSV, Excel-compatible data, or SQL inserts. | [Open tool](https://prabakaras.github.io/dataengineeringtools/synthetic.html) |
 
+## Common Workflows
+
+### Clean and inspect data
+
+1. Use the **JSON Formatter** to validate payloads or API responses.
+2. Use the **CSV / JSON Converter** when moving tabular data between tools.
+3. Use the **CSV Data Profiler** to check row count, populated values, unique values, inferred types, and samples.
+4. Use **Data Masking** before pasting an extract into tickets, documentation, or chat.
+
+### Prepare queries and checks
+
+1. Format a query with the **SQL Formatter** before review or handoff.
+2. Generate a starter null, duplicate, range, or accepted-value check with **Data Quality Rules**.
+3. Compare versions of a query or configuration file with **Text Diff**.
+4. Use **Cron Helper** to explain a standard five-field schedule.
+
+### Create safe test records
+
+1. Open the **Synthetic Data Generator**.
+2. Paste a common `CREATE TABLE` statement and select the number of rows, from 1 to 10,000.
+3. Generate records and review the in-browser preview.
+4. Export the generated data in CSV, Excel-compatible `.xls`, or SQL `INSERT` format.
+
+The generator recognizes common type and column-name patterns for IDs, names, email addresses, city, status, phone numbers, UUIDs, dates, numbers, and booleans. It supports conventional comma-separated column definitions. Table-level constraints, advanced dialect syntax, computed columns, and nonstandard DDL should be reviewed or simplified before generation.
+
+## Exports
+
+The Synthetic Data Generator provides three local export options:
+
+| Export | Use case |
+| --- | --- |
+| CSV | Load sample data into spreadsheets, BI tools, or data platforms. |
+| Excel-compatible `.xls` | Open the generated table directly in Microsoft Excel. |
+| SQL `INSERT` script | Load fictional records into a SQL Server-style test table. |
+
+Generated values are fictional. Review output before running it in a database or sharing it outside your team.
+
 ## Privacy
 
-All processing happens locally in the browser. Pasted content and imported files are not uploaded to a server.
+All processing happens locally in the browser. Pasted content, imported files, generated records, and exported files are not uploaded to a server.
+
+This is a client-side convenience tool, not a replacement for approved data-protection controls. Do not paste production secrets, access tokens, customer data, or regulated data unless your organization permits local browser processing.
+
+## Browser Support
+
+Use a current version of Chrome, Edge, Firefox, or Safari. File download and clipboard behavior can vary based on browser and local security settings.
 
 ## Run Locally
 
-Open `index.html` directly in a browser. No build process, package installation, or server is required.
+Clone the repository and open `index.html` directly in a browser. No build process, package installation, or server is required.
+
+```powershell
+git clone https://github.com/prabakaras/dataengineeringtools.git
+Set-Location dataengineeringtools
+Start-Process index.html
+```
+
+The shared behavior lives in `app.js`, and site-wide styling lives in `styles.css`. Each utility is a standalone HTML page, which keeps the site compatible with GitHub Pages.
+
+## Contributing
+
+Contributions should preserve the core design constraints:
+
+- Keep processing local to the browser; do not add telemetry, credentials, or a backend for routine tools.
+- Use accessible labels, keyboard-friendly native controls, and clear validation feedback.
+- Keep new tools dependency-free when practical and add them to the landing page and this README.
+- Validate JavaScript with `node --check app.js` before submitting a change.
+- Do not include real customer, production, or secret data in examples or commits.
 
 ## Publish Updates
 
-GitHub Pages deploys the contents of the `main` branch from the repository root. Push changes to `main` to publish an update.
+GitHub Pages deploys the contents of the `main` branch from the repository root. Push changes to `main` to publish an update. The live URL is `https://prabakaras.github.io/dataengineeringtools/`.
