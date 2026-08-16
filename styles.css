@@ -93,7 +93,9 @@ h2 { margin: 0; color: var(--navy); font-size: clamp(24px, 3vw, 34px); font-weig
 .tool-description { margin: 10px 0 0; max-width: 260px; color: var(--muted); font-size: 12px; line-height: 1.55; }
 .tool-meta { margin-top: auto; padding-top: 18px; color: var(--blue); font: 10px "DM Mono", monospace; letter-spacing: .35px; }
 .card-arrow { position: absolute; top: 21px; right: 22px; color: var(--blue); font-size: 18px; }
-footer { padding: 25px 28px; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; letter-spacing: .7px; text-align: center; }
+.site-footer { display: flex; justify-content: center; gap: 16px; padding: 25px 28px; border-top: 1px solid var(--line); color: var(--muted); font: 11px "DM Mono", monospace; letter-spacing: .7px; text-align: center; }
+.site-footer a { color: var(--blue); font-weight: 500; }
+.site-footer a:hover { color: var(--blue-dark); text-decoration: underline; text-underline-offset: 3px; }
 
 .tool-page { min-height: 100vh; }
 .tool-layout { max-width: 1280px; margin: auto; padding: 0 32px 70px; }
@@ -185,6 +187,7 @@ pre { min-height: 380px; height: auto; }
   .catalog-controls { grid-template-columns: 1fr 1fr; }
   .catalog-search-label { grid-column: 1 / -1; }
   .catalog-count { text-align: left; }
+  .site-footer { flex-direction: column; gap: 8px; }
   .tool-card { min-height: 205px; }
   .tool-icon { margin-top: 22px; }
   .direction { min-height: 20px; transform: rotate(90deg); }

@@ -474,3 +474,13 @@ function setupToolCatalog() {
 }
 
 setupToolCatalog();
+
+function setupProfileFooter() {
+  if (document.querySelector(".site-footer")) return;
+  const footer = document.createElement("footer");
+  footer.className = "site-footer";
+  footer.innerHTML = '<span>WORKBENCH / CLIENT-SIDE / 2026</span><a href="https://www.linkedin.com/in/prabakarsamiyappan/" target="_blank" rel="noopener noreferrer">CONNECT ON LINKEDIN <span aria-hidden="true">↗</span></a>';
+  document.body.append(footer);
+}
+
+setupProfileFooter();
