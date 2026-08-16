@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://prabakaras.github.io/dataengineeringtools/sitemap.xml

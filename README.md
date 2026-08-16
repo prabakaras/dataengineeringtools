@@ -100,3 +100,7 @@ Contributions should preserve the core design constraints:
 ## Publish Updates
 
 GitHub Pages deploys the contents of the `main` branch from the repository root. Push changes to `main` to publish an update. The live URL is `https://prabakaras.github.io/dataengineeringtools/`.
+
+## Discovery
+
+The landing page includes search and social-sharing metadata. `robots.txt` and `sitemap.xml` allow search engines to discover the landing page and each tool route. Submit `https://prabakaras.github.io/dataengineeringtools/sitemap.xml` to Google Search Console and Bing Webmaster Tools after verifying ownership of the GitHub Pages property.
