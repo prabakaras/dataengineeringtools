@@ -531,6 +531,167 @@ function setupSchemaDiff() {
 setupSchemaGenerator();
 setupSchemaDiff();
 
+function trackToolUsage() {
+  const page = location.pathname.split("/").pop() || "index.html";
+  const key = "prabakar-tools-usage";
+  const usage = JSON.parse(localStorage.getItem(key) || "{}");
+  const current = usage[page] || { views: 0, lastViewed: "" };
+  usage[page] = { views: current.views + 1, lastViewed: new Date().toISOString() };
+  localStorage.setItem(key, JSON.stringify(usage));
+}
+
+async function getDuckDbRuntime() {
+  if (window.__duckDbRuntime) return window.__duckDbRuntime;
+  if (!window.duckdbWasm) {
+    await new Promise((resolve, reject) => {
+      const timer = setTimeout(() => reject(new Error("DuckDB module did not load.")), 8000);
+      window.addEventListener("duckdb-ready", () => { clearTimeout(timer); resolve(); }, { once: true });
+    });
+  }
+  const duckdb = window.duckdbWasm;
+  const bundles = duckdb.getJsDelivrBundles();
+  const bundle = await duckdb.selectBundle(bundles);
+  if (!bundle.mainWorker || !bundle.mainModule) throw new Error("DuckDB runtime bundle is unavailable.");
+  const worker = new Worker(bundle.mainWorker);
+  const db = new duckdb.AsyncDuckDB(new duckdb.VoidLogger(), worker);
+  await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
+  const conn = await db.connect();
+  window.__duckDbRuntime = { duckdb, db, conn };
+  return window.__duckDbRuntime;
+}
+
+function rowsFromArrowTable(table) {
+  if (!table) return { columns: [], rows: [] };
+  const columns = table.schema?.fields?.map((field) => field.name) || [];
+  const records = typeof table.toArray === "function" ? table.toArray() : [];
+  const rows = records.map((record) => {
+    if (typeof record?.toJSON === "function") return record.toJSON();
+    if (record && typeof record === "object") return record;
+    return { value: String(record) };
+  });
+  return { columns, rows };
+}
+
+function renderSimpleTable(columns, rows) {
+  return `<table><thead><tr>${columns.map((column) => `<th>${escapeHtml(column)}</th>`).join("")}</tr></thead><tbody>${rows.map((row) => `<tr>${columns.map((column) => `<td>${escapeHtml(row[column] ?? "")}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
+}
+
+function setupSqlExplorer() {
+  const queryInput = byId("sqlx-query");
+  if (!queryInput) return;
+  const output = byId("sqlx-output"); const status = byId("sqlx-status");
+  const fileInput = byId("sqlx-file"); const tableNameInput = byId("sqlx-table");
+  let loadedSource = null;
+  const run = async () => {
+    try {
+      if (!loadedSource) throw new Error("Import a file first.");
+      const query = queryInput.value.trim();
+      if (!query) throw new Error("Enter a SQL query.");
+      const { conn } = await getDuckDbRuntime();
+      const result = await conn.query(query);
+      const { columns, rows } = rowsFromArrowTable(result);
+      if (!columns.length) { output.textContent = "Query executed."; setStatus(status, "Query completed."); return; }
+      output.innerHTML = renderSimpleTable(columns, rows.slice(0, 500));
+      setStatus(status, `Query complete: ${rows.length} row${rows.length === 1 ? "" : "s"} returned.`);
+    } catch (error) {
+      output.textContent = "Query results will appear here.";
+      setStatus(status, error.message, true);
+    }
+  };
+  fileInput.addEventListener("change", async (event) => {
+    const [file] = event.target.files;
+    if (!file) return;
+    try {
+      const { db, conn } = await getDuckDbRuntime();
+      const buffer = new Uint8Array(await file.arrayBuffer());
+      const extension = (file.name.split(".").pop() || "").toLowerCase();
+      const sourceName = `local_input.${extension || "dat"}`;
+      const tableName = tableNameInput.value.trim() || "local_data";
+      await db.registerFileBuffer(sourceName, buffer);
+      let sourceSql = `'${sourceName}'`;
+      if (extension === "csv") sourceSql = `read_csv_auto('${sourceName}', header=true, sample_size=-1)`;
+      if (extension === "json") sourceSql = `read_json_auto('${sourceName}')`;
+      if (extension === "parquet") sourceSql = `read_parquet('${sourceName}')`;
+      if (!["csv", "json", "parquet"].includes(extension)) throw new Error("Use a CSV, JSON, or Parquet file.");
+      await conn.query(`CREATE OR REPLACE VIEW ${tableName} AS SELECT * FROM ${sourceSql};`);
+      loadedSource = { fileName: file.name, tableName };
+      queryInput.value = `SELECT * FROM ${tableName} LIMIT 50;`;
+      setStatus(status, `${file.name} loaded as view ${tableName}. Run a query.`);
+    } catch (error) {
+      setStatus(status, error.message, true);
+    }
+  });
+  byId("sqlx-run").addEventListener("click", run);
+  byId("sqlx-sample").addEventListener("click", () => {
+    queryInput.value = "SELECT region, COUNT(*) AS records FROM local_data GROUP BY region ORDER BY records DESC;";
+    setStatus(status, "Sample query inserted. Import a file and run.");
+  });
+}
+
+function setupParquetViewer() {
+  const fileInput = byId("parquet-file");
+  if (!fileInput) return;
+  const schemaOutput = byId("parquet-schema"); const tableOutput = byId("parquet-output"); const status = byId("parquet-status");
+  fileInput.addEventListener("change", async (event) => {
+    const [file] = event.target.files;
+    if (!file) return;
+    try {
+      if (!file.name.toLowerCase().endsWith(".parquet")) throw new Error("Import a .parquet file.");
+      const { db, conn } = await getDuckDbRuntime();
+      const sourceName = "parquet_view.parquet";
+      await db.registerFileBuffer(sourceName, new Uint8Array(await file.arrayBuffer()));
+      const schemaResult = await conn.query(`DESCRIBE SELECT * FROM read_parquet('${sourceName}')`);
+      const previewResult = await conn.query(`SELECT * FROM read_parquet('${sourceName}') LIMIT 200`);
+      const schema = rowsFromArrowTable(schemaResult);
+      const preview = rowsFromArrowTable(previewResult);
+      schemaOutput.innerHTML = schema.columns.length ? renderSimpleTable(schema.columns, schema.rows) : "Schema details unavailable.";
+      tableOutput.innerHTML = preview.columns.length ? renderSimpleTable(preview.columns, preview.rows) : "No rows found.";
+      setStatus(status, `${file.name} loaded. Showing up to 200 rows.`);
+    } catch (error) {
+      schemaOutput.textContent = "Schema details will appear here.";
+      tableOutput.textContent = "Preview rows will appear here.";
+      setStatus(status, error.message, true);
+    }
+  });
+}
+
+function setupUsageAnalytics() {
+  const output = byId("usage-output");
+  if (!output) return;
+  const status = byId("usage-status"); const exportBtn = byId("usage-export"); const resetBtn = byId("usage-reset");
+  const key = "prabakar-tools-usage";
+  const render = () => {
+    const usage = JSON.parse(localStorage.getItem(key) || "{}");
+    const rows = Object.entries(usage).map(([page, detail]) => ({ page, views: detail.views, lastViewed: detail.lastViewed || "-" })).sort((a, b) => b.views - a.views);
+    if (!rows.length) {
+      output.textContent = "No local usage data yet.";
+      setStatus(status, "Visit tools to start collecting local usage stats.");
+      return;
+    }
+    output.innerHTML = renderSimpleTable(["page", "views", "lastViewed"], rows);
+    setStatus(status, `Showing ${rows.length} tracked page${rows.length === 1 ? "" : "s"} from this browser.`);
+  };
+  exportBtn.addEventListener("click", () => {
+    const text = localStorage.getItem(key) || "{}";
+    const blob = new Blob([text], { type: "application/json" });
+    const link = Object.assign(document.createElement("a"), { href: URL.createObjectURL(blob), download: "tool-usage-analytics.json" });
+    link.click();
+    URL.revokeObjectURL(link.href);
+    setStatus(status, "Usage data exported.");
+  });
+  resetBtn.addEventListener("click", () => {
+    localStorage.removeItem(key);
+    render();
+    setStatus(status, "Local usage data cleared.");
+  });
+  render();
+}
+
+trackToolUsage();
+setupSqlExplorer();
+setupParquetViewer();
+setupUsageAnalytics();
+
 function setupToolCatalog() {
   const grid = document.querySelector(".tool-grid");
   if (!grid) return;

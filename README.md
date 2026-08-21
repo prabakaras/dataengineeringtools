@@ -30,6 +30,9 @@ Small data tasks often interrupt delivery work: formatting a payload, checking a
 | PII Scanner | Detect common sensitive values and create a redacted copy locally. | [Open tool](https://prabakaras.github.io/dataengineeringtools/pii.html) |
 | JSON Schema Generator | Infer a draft 2020-12 JSON Schema from example JSON. | [Open tool](https://prabakaras.github.io/dataengineeringtools/schema.html) |
 | Schema Diff | Compare JSON schemas and report contract changes by property path. | [Open tool](https://prabakaras.github.io/dataengineeringtools/schema-diff.html) |
+| SQL Data Explorer | Import CSV, JSON, or Parquet and run local SQL queries using DuckDB-Wasm. | [Open tool](https://prabakaras.github.io/dataengineeringtools/sql-explorer.html) |
+| Parquet Viewer | Inspect Parquet schema and preview rows locally in the browser. | [Open tool](https://prabakaras.github.io/dataengineeringtools/parquet.html) |
+| Tool Usage Analytics | View, export, and clear local page usage metrics on this device. | [Open tool](https://prabakaras.github.io/dataengineeringtools/analytics.html) |
 
 ## Common Workflows
 
@@ -64,6 +67,31 @@ The generator recognizes common type and column-name patterns for IDs, names, em
 4. Copy the redacted result after reviewing it manually.
 
 The scanner uses browser-side pattern matching. It is a review aid, not a complete privacy or secrets-detection system.
+
+### Explore local files with SQL
+
+1. Open **SQL Data Explorer**.
+2. Import a local CSV, JSON, or Parquet file.
+3. Run SQL queries over the in-browser view.
+4. Review result tables without uploading data.
+
+DuckDB-Wasm is downloaded by the browser when the tool is used. Query execution remains local.
+
+### Inspect Parquet files
+
+1. Open **Parquet Viewer**.
+2. Import a `.parquet` file.
+3. Review inferred schema details and row previews.
+
+Large files may use noticeable memory because all processing stays in the browser.
+
+### Local usage analytics
+
+The **Tool Usage Analytics** page shows local per-page view counts stored in `localStorage` on your device.
+
+- Metrics are not uploaded by default.
+- You can export usage JSON from the analytics page.
+- You can clear local usage data at any time.
 
 ## Exports
 
