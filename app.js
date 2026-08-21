@@ -442,6 +442,39 @@ function setupJsonTable() {
 
 setupJsonTable();
 
+function setupPiiScanner() {
+  const input = byId("pii-input");
+  if (!input) return;
+  const output = byId("pii-output"); const redacted = byId("pii-redacted"); const status = byId("pii-status");
+  const checks = [
+    { key: "Email", pattern: /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi },
+    { key: "Phone", pattern: /(?<!\w)(?:\+?\d[\d .()-]{7,}\d)(?!\w)/g },
+    { key: "IPv4 address", pattern: /(?<![\w.])(?:\d{1,3}\.){3}\d{1,3}(?![\w.])/g },
+    { key: "UUID", pattern: /\b[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\b/gi },
+    { key: "Credit-card-like number", pattern: /(?<!\w)(?:\d[ -]?){13,19}(?!\w)/g },
+    { key: "API key or token", pattern: /\b(?:sk|pk|api|token|secret)[_-]?[a-z0-9]{12,}\b/gi }
+  ];
+  const scan = () => {
+    const text = input.value;
+    const findings = [];
+    let masked = text;
+    checks.forEach(({ key, pattern }) => {
+      const matches = [...text.matchAll(pattern)].filter((match) => key !== "IPv4 address" || match[0].split(".").every((part) => Number(part) <= 255));
+      matches.forEach((match) => findings.push({ key, value: match[0], index: match.index ?? 0 }));
+      masked = masked.replace(pattern, `[REDACTED ${key.toUpperCase()}]`);
+    });
+    findings.sort((left, right) => left.index - right.index);
+    output.innerHTML = findings.length ? `<p class="result-summary">${findings.length} likely sensitive value${findings.length === 1 ? "" : "s"} found.</p>${findings.map((finding, index) => `<div class="match-row"><span>${index + 1}</span><code>${escapeHtml(finding.key)}</code><small>position ${finding.index} · ${escapeHtml(finding.value)}</small></div>`).join("")}` : "No common PII patterns found.";
+    redacted.textContent = masked || "Redacted text will appear here.";
+    setStatus(status, text ? `${findings.length} likely finding${findings.length === 1 ? "" : "s"} detected. Review results before sharing.` : "Paste text to scan.", Boolean(!text));
+  };
+  byId("pii-run").addEventListener("click", scan);
+  byId("pii-sample").addEventListener("click", () => { input.value = "User: ava.chen@example.com\nPhone: +1 (555) 123-4567\nServer: 192.168.10.24\nToken: sk_live_1234567890abcdef"; scan(); });
+  byId("pii-copy").addEventListener("click", () => copyText(redacted.textContent, status, "Redacted text copied."));
+}
+
+setupPiiScanner();
+
 function setupToolCatalog() {
   const grid = document.querySelector(".tool-grid");
   if (!grid) return;

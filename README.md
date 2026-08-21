@@ -27,6 +27,7 @@ Small data tasks often interrupt delivery work: formatting a payload, checking a
 | Cron Helper | Explain standard five-field cron expressions. | [Open tool](https://prabakaras.github.io/dataengineeringtools/cron.html) |
 | Synthetic Data Generator | Generate test data from common DDL and export CSV, Excel-compatible data, or SQL inserts. | [Open tool](https://prabakaras.github.io/dataengineeringtools/synthetic.html) |
 | JSON to Table | Flatten JSON records into a searchable table and export the results. | [Open tool](https://prabakaras.github.io/dataengineeringtools/json-table.html) |
+| PII Scanner | Detect common sensitive values and create a redacted copy locally. | [Open tool](https://prabakaras.github.io/dataengineeringtools/pii.html) |
 
 ## Common Workflows
 
@@ -52,6 +53,15 @@ Small data tasks often interrupt delivery work: formatting a payload, checking a
 4. Export the generated data in CSV, Excel-compatible `.xls`, or SQL `INSERT` format.
 
 The generator recognizes common type and column-name patterns for IDs, names, email addresses, city, status, phone numbers, UUIDs, dates, numbers, and booleans. It supports conventional comma-separated column definitions. Table-level constraints, advanced dialect syntax, computed columns, and nonstandard DDL should be reviewed or simplified before generation.
+
+### Scan before sharing
+
+1. Open the **PII Scanner**.
+2. Paste a log, payload, extract, or document.
+3. Review detected email addresses, phone numbers, IP addresses, UUIDs, card-like numbers, and token-like values.
+4. Copy the redacted result after reviewing it manually.
+
+The scanner uses browser-side pattern matching. It is a review aid, not a complete privacy or secrets-detection system.
 
 ## Exports
 
