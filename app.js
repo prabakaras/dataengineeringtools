@@ -475,6 +475,62 @@ function setupPiiScanner() {
 
 setupPiiScanner();
 
+function setupSchemaGenerator() {
+  const input = byId("schema-input");
+  if (!input) return;
+  const output = byId("schema-output"); const status = byId("schema-status");
+  const schemaFor = (value, title) => {
+    if (value === null) return { type: "null" };
+    if (Array.isArray(value)) {
+      const items = value.length ? value.map((item) => schemaFor(item)).reduce((schemas, schema) => schemas.some((candidate) => JSON.stringify(candidate) === JSON.stringify(schema)) ? schemas : [...schemas, schema], []) : [];
+      return { type: "array", ...(items.length === 1 ? { items: items[0] } : items.length > 1 ? { items: { anyOf: items } } : {}) };
+    }
+    if (typeof value === "object") {
+      const entries = Object.entries(value); const properties = Object.fromEntries(entries.map(([key, child]) => [key, schemaFor(child, key)]));
+      return { ...(title ? { title } : {}), type: "object", properties, ...(entries.length ? { required: entries.map(([key]) => key) } : {}), additionalProperties: false };
+    }
+    if (typeof value === "number") return { type: Number.isInteger(value) ? "integer" : "number" };
+    return { type: typeof value };
+  };
+  const generate = () => {
+    try {
+      if (!input.value.trim()) throw new Error("Paste a JSON object or array to generate a schema.");
+      const parsed = JSON.parse(input.value); output.textContent = JSON.stringify({ "$schema": "https://json-schema.org/draft/2020-12/schema", ...schemaFor(parsed, "GeneratedData") }, null, 2); setStatus(status, "Schema generated locally. Review required fields against your real contract.");
+    } catch (error) { output.textContent = "Generated schema will appear here."; setStatus(status, `Invalid JSON: ${error.message}`, true); }
+  };
+  byId("schema-run").addEventListener("click", generate);
+  byId("schema-sample").addEventListener("click", () => { input.value = '[{"id":101,"name":"Ava","active":true},{"id":102,"name":"Leo","active":false}]'; generate(); });
+  byId("schema-copy").addEventListener("click", () => copyText(output.textContent, status));
+}
+
+function setupSchemaDiff() {
+  const left = byId("schema-left");
+  if (!left) return;
+  const right = byId("schema-right"); const output = byId("schema-diff-output"); const status = byId("schema-diff-status");
+  const typeOf = (schema) => schema && schema.type ? Array.isArray(schema.type) ? schema.type.join(" | ") : schema.type : schema && schema.anyOf ? schema.anyOf.map(typeOf).join(" | ") : "unknown";
+  const compare = () => {
+    try {
+      const before = JSON.parse(left.value); const after = JSON.parse(right.value); const changes = [];
+      const walk = (oldSchema, newSchema, path) => {
+        if (!oldSchema) { changes.push(["Added", path, typeOf(newSchema)]); return; }
+        if (!newSchema) { changes.push(["Removed", path, typeOf(oldSchema)]); return; }
+        if (typeOf(oldSchema) !== typeOf(newSchema)) changes.push(["Type changed", path, `${typeOf(oldSchema)} → ${typeOf(newSchema)}`]);
+        const oldProperties = oldSchema.properties || {}; const newProperties = newSchema.properties || {};
+        [...new Set([...Object.keys(oldProperties), ...Object.keys(newProperties)])].forEach((key) => walk(oldProperties[key], newProperties[key], `${path}.${key}`));
+        const oldRequired = new Set(oldSchema.required || []); const newRequired = new Set(newSchema.required || []);
+        [...newRequired].filter((key) => !oldRequired.has(key)).forEach((key) => changes.push(["Required", `${path}.${key}`, "now required"]));
+        [...oldRequired].filter((key) => !newRequired.has(key) && newProperties[key]).forEach((key) => changes.push(["Optional", `${path}.${key}`, "no longer required"]));
+      };
+      walk(before, after, "$root"); output.innerHTML = changes.length ? `<p class="result-summary">${changes.length} schema change${changes.length === 1 ? "" : "s"} found.</p>${changes.map(([kind, path, detail]) => `<div class="match-row"><span>${escapeHtml(kind)}</span><code>${escapeHtml(path)}</code><small>${escapeHtml(detail)}</small></div>`).join("")}` : "No structural changes found."; setStatus(status, changes.length ? `${changes.length} change${changes.length === 1 ? "" : "s"} found.` : "Schemas are structurally equivalent.", false);
+    } catch (error) { output.textContent = "Schema comparison will appear here."; setStatus(status, `Both inputs must be valid JSON schemas: ${error.message}`, true); }
+  };
+  byId("schema-diff-run").addEventListener("click", compare);
+  byId("schema-diff-sample").addEventListener("click", () => { left.value = '{"type":"object","properties":{"id":{"type":"integer"},"name":{"type":"string"}},"required":["id"]}'; right.value = '{"type":"object","properties":{"id":{"type":"string"},"email":{"type":"string","format":"email"}},"required":["id","email"]}'; compare(); });
+}
+
+setupSchemaGenerator();
+setupSchemaDiff();
+
 function setupToolCatalog() {
   const grid = document.querySelector(".tool-grid");
   if (!grid) return;

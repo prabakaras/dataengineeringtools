@@ -28,6 +28,8 @@ Small data tasks often interrupt delivery work: formatting a payload, checking a
 | Synthetic Data Generator | Generate test data from common DDL and export CSV, Excel-compatible data, or SQL inserts. | [Open tool](https://prabakaras.github.io/dataengineeringtools/synthetic.html) |
 | JSON to Table | Flatten JSON records into a searchable table and export the results. | [Open tool](https://prabakaras.github.io/dataengineeringtools/json-table.html) |
 | PII Scanner | Detect common sensitive values and create a redacted copy locally. | [Open tool](https://prabakaras.github.io/dataengineeringtools/pii.html) |
+| JSON Schema Generator | Infer a draft 2020-12 JSON Schema from example JSON. | [Open tool](https://prabakaras.github.io/dataengineeringtools/schema.html) |
+| Schema Diff | Compare JSON schemas and report contract changes by property path. | [Open tool](https://prabakaras.github.io/dataengineeringtools/schema-diff.html) |
 
 ## Common Workflows
 
